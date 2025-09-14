@@ -91,8 +91,8 @@ function JobList() {
             onChange={(e) => setJobType(e.target.value)}
           >
             <option value="Job type">Job type</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
+            <option value="Fulltime">Full-time</option>
+            <option value="Parttime">Part-time</option>
             <option value="Contract">Contract</option>
             <option value="Internship">Internship</option>
           </select>
