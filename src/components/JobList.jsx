@@ -37,20 +37,19 @@ function JobList() {
   }, [API_BASE]);
 
   const handleSalaryChange = (e) => setSalaryRange(e.target.value);
-
-  const filteredJobs = Array.isArray(jobs)
+const filteredJobs = Array.isArray(jobs)
   ? jobs.filter(job => {
       const matchesSearch =
-        (job.jobTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (job.jobtitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (job.description || '').toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesLocation = (job.location || '').toLowerCase().includes(locationQuery.toLowerCase());
 
       const matchesJobType =
-        jobType === 'Job type' || (job.jobType || '').toLowerCase() === jobType.toLowerCase();
+        jobType === 'Job type' || (job.jobtype || '').toLowerCase() === jobType.toLowerCase();
 
-      const salaryMin = parseInt(job.salaryMin, 10) || 0;
-      const salaryMax = parseInt(job.salaryMax, 10) || Infinity;
+      const salaryMin = parseInt(job.salarymin, 10) || 0;
+      const salaryMax = parseInt(job.salarymax, 10) || Infinity;
       const selectedMin = salaryRange * 1000;
       const selectedMax = (parseInt(salaryRange) + 20) * 1000;
 
@@ -59,6 +58,7 @@ function JobList() {
       return matchesSearch && matchesLocation && matchesJobType && matchesSalary;
     })
   : [];
+
 
   return (
     <div className="job-list-page">
