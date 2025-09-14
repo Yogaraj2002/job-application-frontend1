@@ -1,52 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import JobCard from '../components/JobCard';
 import './JobList.css';
-import { FaSearch, FaMapMarkerAlt, FaBriefcase, FaDollarSign } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaBriefcase } from 'react-icons/fa';
 
 function JobList() {
   const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [salaryRange, setSalaryRange] = useState(50);
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
   const [jobType, setJobType] = useState('Job type');
 
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
+    setLoading(true);
     fetch(`${API_BASE}/api/jobs`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Network response was not ok');
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setJobs(data);
+          setError('');
+        } else {
+          console.error("API returned non-array:", data);
+          setJobs([]);
+          setError('Unexpected API response');
         }
-        return res.json();
       })
-      .then(data => setJobs(data))
-      .catch(err => console.error("Error fetching jobs:", err));
-  }, []);
+      .catch(err => {
+        console.error("Error fetching jobs:", err);
+        setJobs([]);
+        setError('Failed to fetch jobs');
+      })
+      .finally(() => setLoading(false));
+  }, [API_BASE]);
 
-  const handleSalaryChange = (e) => {
-    setSalaryRange(e.target.value);
-  };
+  const handleSalaryChange = (e) => setSalaryRange(e.target.value);
 
-  const filteredJobs = jobs.filter(job => {
-  const matchesSearch =
-    job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredJobs = Array.isArray(jobs)
+  ? jobs.filter(job => {
+      const matchesSearch =
+        (job.jobTitle || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (job.description || '').toLowerCase().includes(searchQuery.toLowerCase());
 
-  const matchesLocation = job.location.toLowerCase().includes(locationQuery.toLowerCase());
+      const matchesLocation = (job.location || '').toLowerCase().includes(locationQuery.toLowerCase());
 
-  const matchesJobType =
-    jobType === 'Job type' || job.jobType.toLowerCase() === jobType.toLowerCase();
+      const matchesJobType =
+        jobType === 'Job type' || (job.jobType || '').toLowerCase() === jobType.toLowerCase();
 
+      const salaryMin = parseInt(job.salaryMin, 10) || 0;
+      const salaryMax = parseInt(job.salaryMax, 10) || Infinity;
+      const selectedMin = salaryRange * 1000;
+      const selectedMax = (parseInt(salaryRange) + 20) * 1000;
 
-  const salaryMin = parseInt(job.salaryMin, 10);
-  const salaryMax = parseInt(job.salaryMax, 10);
-  const selectedMin = salaryRange * 1000; // slider in "k"
-  const selectedMax = (parseInt(salaryRange) + 20) * 1000;
+      const matchesSalary = salaryMin <= selectedMax && salaryMax >= selectedMin;
 
-  const matchesSalary = salaryMin <= selectedMax && salaryMax >= selectedMin;
-
-  return matchesSearch && matchesLocation && matchesJobType && matchesSalary;
-});
+      return matchesSearch && matchesLocation && matchesJobType && matchesSalary;
+    })
+  : [];
 
   return (
     <div className="job-list-page">
@@ -79,8 +91,8 @@ function JobList() {
             onChange={(e) => setJobType(e.target.value)}
           >
             <option value="Job type">Job type</option>
-            <option value="Fulltime">Full-time</option>
-            <option value="Parttime">Part-time</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
             <option value="Contract">Contract</option>
             <option value="Internship">Internship</option>
           </select>
@@ -99,11 +111,14 @@ function JobList() {
           />
         </div>
       </div>
+
       <div className="job-cards-grid">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map(job => (
-            <JobCard key={job.id} job={job} />
-          ))
+        {loading ? (
+          <p>Loading jobs...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : filteredJobs.length > 0 ? (
+          filteredJobs.map(job => <JobCard key={job.id} job={job} />)
         ) : (
           <p>No jobs found matching your criteria.</p>
         )}
