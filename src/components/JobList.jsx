@@ -91,10 +91,10 @@ const filteredJobs = Array.isArray(jobs)
             onChange={(e) => setJobType(e.target.value)}
           >
             <option value="Job type">Job type</option>
-            <option value="Fulltime">Full-time</option>
-            <option value="Parttime">Part-time</option>
-            <option value="Contract">Contract</option>
-            <option value="Internship">Internship</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
           </select>
         </div>
         <div className="salary-range-container">
